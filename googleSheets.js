@@ -2,7 +2,7 @@ const { google } = require('googleapis');
 const fs = require('fs').promises;
 require('dotenv').config();
 
-const SPREADSHEET_ID = process.env.SPREADSHEET_ID || "1kVDXH5sxhf2peyPbpEy8MOWVnZrjh8Dsp0awiF6cFtw";
+const SPREADSHEET_ID = process.env.SPREADSHEET_ID || "1nV4iPPy7wkjb2m6txVtIcdJo-W0PnKT7eHxTbLs_l68";
 const SHEET_NAME = process.env.SHEET_NAME || 'Лист1';
 
 // Авторизация в Google Sheets API
