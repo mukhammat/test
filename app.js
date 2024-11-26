@@ -6,7 +6,7 @@ const BASE_URL = process.env.BASE_URL || 'http://94.103.91.4:5000';
 
 const REGIST_URL = `${BASE_URL}/auth/registration`;
 const LOGIN_URL = `${BASE_URL}/auth/login`;
-const CLIENTS_URL = `${BASE_URL}/clients?limit=1000&offset=0`;
+const CLIENTS_URL = `${BASE_URL}/clients`;
 const STATUSES_URL = `${BASE_URL}/clients`;
 
 // Debug mode
@@ -68,33 +68,53 @@ async function getToken(username, authUrl, registerUrl) {
 }
 
 async function getClients(token, url) {
+    let clients = [];
+    let offset = 0;
+    const limit = 1000;
+
     try {
-        // Получение данных клиентов
-        const clientsResponse = await axios.get(url, {
-            headers: {
-                Authorization: `${token}`
-            }
-        });
-        debug(clientsResponse.data);
+        while (true) {
+            const response = await axios.get(`${url}?limit=${limit}&offset=${offset}`, {
+                headers: {
+                    Authorization: `${token}`
+                }
+            });
+            const data = response.data;
+
+            if (data.length === 0) break;
+
+            clients = clients.concat(data);
+            offset += limit;
+        }
+
+        debug(clients);
         console.log('Данные клиентов получены...');
-        return clientsResponse.data;
+        return clients;
     } catch (error) {
         console.error('Ошибка получения данных:', error.message);
-        return [];  // Вернем пустой массив, чтобы избежать краха программы
+        return [];
     }
 }
 
 async function getStatuses(clients, token, url) {
+    const statuses = [];
+    const chunkSize = 1000;
+
     try {
-        // Запрос статусов клиентов
-        const statusResponse = await axios.post(url, {
-            "userIds": [...clients.map(client => client.id)]
-        }, {
-            headers: { Authorization: `${token}` }
-        });
-        debug(statusResponse.data);
+        for (let i = 0; i < clients.length; i += chunkSize) {
+            const chunk = clients.slice(i, i + chunkSize);
+            const response = await axios.post(url, {
+                "userIds": chunk.map(client => client.id)
+            }, {
+                headers: { Authorization: `${token}` }
+            });
+
+            statuses.push(...response.data);
+        }
+
+        debug(statuses);
         console.log('Статусы получены...');
-        return statusResponse.data;
+        return statuses;
     } catch (error) {
         console.error('Ошибка получения статусов:', error.message);
         return [];
